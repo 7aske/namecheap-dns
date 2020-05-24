@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-prog="$(basename $0 .sh)"
+prog="$(basename "$0" .sh)"
 
 update_url="https://dynamicdns.park-your-domain.com/update"
 domains="$HOME/.config/namecheap/domains"
@@ -21,22 +21,35 @@ _update-dns (){
     curl "$dns_update_url"
 }
 
+_save-as-conf (){
+    
+    [ ! -e "$domains" ] && mkdir -p "$domains"
+
+    echo "
+host=$1
+domain=$2
+password=$3
+ip=$4" > "$domains/$2.conf"
+
+}
+
 if [ $# -eq 0 ]; then
 
-    for d in  "$domains"/*; do
-        source "$domains/$1.conf"
-        _update-dns $host $domain $password $ip
+    for d in  "$domains"/*.conf; do
+        source "$d"
+        _update-dns "$host" "$domain" "$password" "$ip"
     done
 
 elif [ $# -eq 1 ]; then
 
     [ ! -e "$domains/$1.conf" ] && echo "$prog: $domains/$1.conf: no such file or directory" && exit 1
     source "$domains/$1.conf"
-    _update-dns $host $domain $password $ip
+    _update-dns "$host" "$domain" "$password" "$ip"
 
 elif [ $# -eq 4 ] || [ $# -eq 3 ]; then
 
-    _update-dns $1 $2 $3 $4
+    _update-dns   "$1" "$2" "$3" "$4" && \
+    _save-as-conf "$1" "$2" "$3" "$4"
 
 else
 
