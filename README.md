@@ -14,6 +14,8 @@ Script to update [namecheap.com](https://namecheap.com) domains based on their o
 
 It can be easily integrated with any crontab or external scripts.
 
+Successfully updating a domain via the 3 or 4 argument script invocation will add its profile to the default domains location.
+
 ## Domains
 
 Domain config files are by default located in `$HOME/.config/namecheap/domains/`.
