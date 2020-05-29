@@ -19,9 +19,8 @@ It can be easily integrated with any crontab or external scripts.
 Domain config files are by default located in `$HOME/.config/namecheap/domains/`.
 
 example.com.conf 
-
 ```
-host=*
+host=\\*,www,@
 domain=example.com
 password=changeme
 ip=

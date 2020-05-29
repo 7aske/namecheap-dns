@@ -17,14 +17,28 @@ domains=$domains
 }
 
 _update-dns (){
-    dns_update_url="${update_url}?by=nc&host=${1}&domain=${2}&password=${3}&ip=${4}"
-    curl "$dns_update_url"
+    for host in $(echo $1 | sed -e 's/,/\n/g'); do 
+        host="$(echo "$host" | sed -e 's/\\\*/\*/')"
+        dns_update_url="${update_url}?by=nc&host=${host}&domain=${2}&password=${3}&ip=${4}"
+        resp="$(curl -s "$dns_update_url" 2>/dev/null)"
+        err_count="$(echo "$resp" | sed -e 's/.*<ErrCount>\([0-9]\)<\/ErrCount>.*/\1/')"
+        ip_addr="$(echo "$resp" | sed -e 's/.*<IP>\([0-9.]*\)<\/IP>.*/\1/')"
+        if [ "$err_count" = "0" ]; then
+            echo "$host.$domain -> $ip_addr"
+        else
+            echo "$prog: failed syncing $host.$domain"
+        fi
+    done    
+}
+
+_save-conf (){
+    echo -e "host=$1\ndomain=$2\npassword=$3\nip=$4\n" > "$domains/$2.conf"
 }
 
 if [ $# -eq 0 ]; then
 
     for d in  "$domains"/*; do
-        source "$domains/$1.conf"
+        source "$d"
         _update-dns $host $domain $password $ip
     done
 
@@ -36,7 +50,8 @@ elif [ $# -eq 1 ]; then
 
 elif [ $# -eq 4 ] || [ $# -eq 3 ]; then
 
-    _update-dns $1 $2 $3 $4
+    _update-dns $1 $2 $3 $4 && \
+    _save-conf  $1 $2 $3 $4
 
 else
 
